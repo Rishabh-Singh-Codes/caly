@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -24,9 +23,10 @@ import {
   SelectValue,
 } from "../ui/select";
 import { formatTimezoneOffset } from "@/lib/formatters";
-import { Fragment } from "react";
-import { Plus } from "lucide-react";
+import { Fragment, useState } from "react";
+import { Plus, X } from "lucide-react";
 import { Input } from "../ui/input";
+import { saveSchedule } from "@/server/actions/schedule";
 
 type Availability = {
   startTime: string;
@@ -42,6 +42,7 @@ export default function ScheduleForm({
     availabilities: Availability[];
   };
 }) {
+  const [successMessage, setSuccessMessage] = useState<string>();
   const form = useForm<z.infer<typeof scheduleFormSchema>>({
     resolver: zodResolver(scheduleFormSchema),
     defaultValues: {
@@ -64,28 +65,31 @@ export default function ScheduleForm({
     (availability) => availability.dayOfWeek
   );
 
-  // async function onSubmit(values: z.infer<typeof scheduleFormSchema>) {
-  //   const action =
-  //     schedule == null ? createEvent : updateEvent.bind(null, schedule.id);
-  //   const data = await action(values);
+  async function onSubmit(values: z.infer<typeof scheduleFormSchema>) {
+    const data = await saveSchedule(values);
 
-  //   if (data?.error) {
-  //     form.setError("root", {
-  //       message: "There was an error while saving your event",
-  //     });
-  //   }
-  // }
+    if (data?.error) {
+      form.setError("root", {
+        message: "There was an error while saving your schedule",
+      });
+    } else {
+      setSuccessMessage("Schedule saved!");
+    }
+  }
 
   return (
     <Form {...form}>
       <form
-        // onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col gap-6"
       >
         {form.formState.errors.root && (
           <div className="text-destructive text-sm">
             {form.formState.errors.root.message}
           </div>
+        )}
+        {successMessage && (
+          <div className="text-green-500 text-sm">{successMessage}</div>
         )}
         <FormField
           control={form.control}
@@ -120,14 +124,15 @@ export default function ScheduleForm({
               </div>
               <div className="flex flex-col gap-2">
                 <Button
+                  type="button"
                   className="size-6 p-1"
                   variant="outline"
                   onClick={() => {
                     addAvailability({
-                      dayOfWeek, 
+                      dayOfWeek,
                       startTime: "09:00",
-                      endTime: "18:00"
-                    })
+                      endTime: "18:00",
+                    });
                   }}
                 >
                   <Plus className="size-full" />
@@ -153,6 +158,7 @@ export default function ScheduleForm({
                             </FormItem>
                           )}
                         />
+                        -
                         <FormField
                           control={form.control}
                           name={`availabilities.${field.index}.endTime`}
@@ -170,6 +176,14 @@ export default function ScheduleForm({
                             </FormItem>
                           )}
                         />
+                        <Button
+                          type="button"
+                          variant="destructiveGhost"
+                          className="size-6 p-1"
+                          onClick={() => removeAvailability(field.index)}
+                        >
+                          <X />
+                        </Button>
                       </div>
                       <FormMessage>
                         {

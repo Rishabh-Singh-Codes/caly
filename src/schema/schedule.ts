@@ -23,13 +23,13 @@ export const scheduleFormSchema = z.object({
       })
     )
     .superRefine((availabilities, ctx) => {
-      availabilities.forEach((availbility, index) => {
+      availabilities.forEach((availability, index) => {
         const overlaps = availabilities.some((a, i) => {
           return (
             i !== index &&
-            a.dayOfWeek !== availbility.dayOfWeek &&
-            timeToInt(a.startTime) < timeToInt(availbility.endTime) &&
-            timeToInt(a.endTime) > timeToInt(availbility.startTime)
+            a.dayOfWeek === availability.dayOfWeek &&
+            timeToInt(a.startTime) < timeToInt(availability.endTime) &&
+            timeToInt(a.endTime) > timeToInt(availability.startTime)
           );
         });
 
@@ -42,7 +42,7 @@ export const scheduleFormSchema = z.object({
         }
 
         if (
-          timeToInt(availbility.startTime) >= timeToInt(availbility.endTime)
+          timeToInt(availability.startTime) >= timeToInt(availability.endTime)
         ) {
           ctx.addIssue({
             code: "custom",
