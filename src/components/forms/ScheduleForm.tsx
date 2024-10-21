@@ -1,4 +1,5 @@
 "use client";
+import "core-js/proposals/array-grouping-v2";
 
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";

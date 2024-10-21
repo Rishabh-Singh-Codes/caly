@@ -17,6 +17,7 @@ import {
   setMinutes,
 } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
+import "core-js/proposals/array-grouping-v2";
 
 export default async function getValidTimesFromSchedule(
   timesInOrder: Date[],
